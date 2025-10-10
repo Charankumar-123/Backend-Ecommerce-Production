@@ -1,9 +1,14 @@
 package com.eoxys.entity;
 import java.util.List;
 import java.util.Set;
+
+import com.eoxys.utils.OrderStatus;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,7 +31,9 @@ public class OrdersEntity {
     @Column(name = "user_id")
     private Long userId;
     
-    private String status = "ORDERED";
+//    private String status = "ORDERED";
+    @Enumerated(EnumType.STRING) // Store the status as a string in DB
+    private OrderStatus status = OrderStatus.ORDERED;
     
     private float totalPrice; 
 
@@ -45,6 +52,8 @@ public class OrdersEntity {
     @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name="order_id", referencedColumnName = "order_id", insertable = false, nullable = true, updatable = false)
     private List<OrderItemsEntity> orderItemsInfo;
+    
+    
 
     // Getters and Setters
     public Long getOrderId() {
@@ -79,19 +88,28 @@ public class OrdersEntity {
     public void setUserOrderInfo(UsersEntity userOrderInfo) {
         this.userOrderInfo = userOrderInfo;
     }
-	public String getStatus() {
-		return status;
-	}
+    public OrderStatus getStatus() {
+        return status;
+    }
 
-	public void setStatus(String status) {
-		this.status = status;
-	}
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+    
+    public List<OrderItemsEntity> getOrderItemsInfo() {
+        return orderItemsInfo;
+    }
+
+    public void setOrderItemsInfo(List<OrderItemsEntity> orderItemsInfo) {
+        this.orderItemsInfo = orderItemsInfo;
+    }
+
 
 	
 
 	
 
-	public OrdersEntity(Long orderId, Long userId, String status,
+	public OrdersEntity(Long orderId, Long userId, OrderStatus status,
 			float totalPrice, UsersEntity userOrderInfo,
 			List<OrderItemsEntity> orderItemsInfo) {
 		super();

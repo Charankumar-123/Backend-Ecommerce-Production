@@ -26,15 +26,22 @@ public class OrdersController {
 	private OrdersService ordersService;
 
 	@PostMapping("/create-order/{userId}")
-    public ResponseEntity<OrdersEntity> createOrderOrAddOrder(@PathVariable Long userId) {
-        OrdersEntity order = ordersService.createOrderOrAddOrder(userId);
+    public ResponseEntity<Response> createOrderOrAddOrder(@PathVariable Long userId) {
+        Response order = ordersService.createOrderOrAddOrder(userId);
         return ResponseEntity.ok(order);
         }
 	
-    @GetMapping("/get-orders")
-    public ResponseEntity<Response> getOrderList(){
-    	return new ResponseEntity<>(ordersService.getOrderList(),HttpStatus.ACCEPTED);
-    	
+//    @GetMapping("/get-orders/{userId}")
+//    public ResponseEntity<Response> getOrderList(@PathVariable Long userId){
+//    	return new ResponseEntity<>(ordersService.getOrderList(userId),HttpStatus.ACCEPTED);
+//    	
+//    }
+    
+    @GetMapping("/get-orders/{userId}")
+    public ResponseEntity<Response> getOrderList(@PathVariable Long userId) {
+        Response res = ordersService.getOrderList(userId);
+        return ResponseEntity.ok(res);
     }
-	
 }
+	
+

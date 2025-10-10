@@ -1,6 +1,5 @@
 package com.eoxys.service;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -15,179 +14,152 @@ import com.eoxys.repository.CartRepository;
 import com.eoxys.repository.ProductRepository;
 import com.eoxys.repository.UsersRepository;
 
-
 @Service
-public class CartService{
-	
-	
+public class CartService {
+
 	@Autowired
 	private CartRepository cartRepository;
-	
+
 	@Autowired
 	private ProductRepository productRepository;
-	
+
 	@Autowired
 	private UsersRepository userRepository;
 
-	   public CartEntity createOrUpdateCart(CartDto cartDto) {
-		   
-		   System.out.println("CartDto Quantity: " + cartDto.getQuantity());
-		    System.out.println("CartDto UserId: " + cartDto.getUserId());
-		    System.out.println("CartDto ProductId: " + cartDto.getProductId());
-//		   System.out.println("cartDto" +cartDto);
-	        // Check if an entry already exists for this user and product
-	        Optional<CartEntity> existingCartOptional = cartRepository.findByUserIdAndProductId(cartDto.getUserId(), cartDto.getProductId());
+	public CartEntity addToCart(CartDto cartDto) {
+		System.out.println("CartDto Details: UserId=" + cartDto.getUserId() + ", ProductId=" + cartDto.getProductId()
+				+ ", Quantity=" + cartDto.getQuantity());
 
-	        CartEntity cartEntity;
+		// Validate product existence
+		Optional<Product> productOptional = productRepository.findById(cartDto.getProductId());
+		if (!productOptional.isPresent()) {
+			throw new RuntimeException("Product with ID " + cartDto.getProductId() + " not found.");
+		}
 
-	        if (existingCartOptional.isPresent()) {
-	            // Update the quantity if the product already exists in the cart
-	            cartEntity = existingCartOptional.get();
-	            System.out.println("Existing CartEntity Found: " + cartEntity);
-	            System.out.println("Existing Quantity: " + cartEntity.getProductInfo().getQuantity());
-	            
-	            cartEntity.setQuantity(cartEntity.getProductInfo().getQuantity() + cartDto.getQuantity());
-	            System.out.println("Updated Quantity: " + cartEntity.getProductInfo().getQuantity());
-	            
-	            return cartRepository.save(cartEntity);
-	            
+		// Check if the product is already in the cart
+		Optional<CartEntity> existingCartOptional = cartRepository.findByUserIdAndProductId(cartDto.getUserId(),
+				cartDto.getProductId());
+
+		CartEntity cartEntity;
+
+		Long requestedQuantity = Optional.ofNullable(cartDto.getQuantity()).orElse(1L);
+		if (existingCartOptional.isPresent()) {
+			// If the product exists, update the quantity
+			cartEntity = existingCartOptional.get();
+			Long currentQuantity = Optional.ofNullable(cartEntity.getQuantity()).orElse(0L); // Default to 1
+			Long newQuantity = currentQuantity + requestedQuantity; // Ensure quantity is at least 1
+			cartEntity.setQuantity(newQuantity);
+			System.out.println("Updated Cart Quantity: " + newQuantity);
+		} else {
+			// Create a new cart entry
+			cartEntity = new CartEntity();
+			cartEntity.setUserId(cartDto.getUserId());
+			cartEntity.setProductId(cartDto.getProductId());
+			cartEntity.setQuantity(requestedQuantity); // Ensure quantity is at least 1
+			System.out.println("Creating New Cart Entry: " + cartEntity);
+		}
+
+		return cartRepository.save(cartEntity);
+	}
+
+	public boolean checkIfProductInCart(Long userId, Long productId) {
+		return cartRepository.findByUserIdAndProductId(userId, productId).isPresent();
+	}
+
+	public List<CartEntity> getCartItemsByUserId(Long userId) {
+	    List<CartEntity> cartEntities = cartRepository.findByUserId(userId);
+	    List<CartEntity> validCartEntities = new ArrayList<>();
+	    
+	    if (cartEntities.isEmpty()) {
+	        System.out.println("No cart items found for userId: " + userId);
+	    } else {
+	        System.out.println("cartEntities before validation => " + cartEntities);
+	    }
+
+	    // Check if the product exists before adding the cart entity to the list
+	    for (CartEntity cartEntity : cartEntities) {
+	        Optional<Product> productOptional = productRepository.findById(cartEntity.getProductId());
+	        if (productOptional.isPresent()) {
+	            validCartEntities.add(cartEntity);
 	        } else {
-	            // Create a new cart entry if the product is not already in the cart
-	        	CartEntity cartCreateEntity;
-	            cartCreateEntity = new CartEntity();  // new entity
-	            cartCreateEntity.setUserId(cartDto.getUserId());
-	            cartCreateEntity.setProductId(cartDto.getProductId());
-	            cartCreateEntity.setQuantity(cartDto.getQuantity());
-	            System.out.println("Creating New CartEntity: " + cartCreateEntity);
-	            
-	            CartEntity savedEntity =  cartRepository.save(cartCreateEntity);
-	            System.out.println("Saved New CartEntity: " + savedEntity);
-	            return savedEntity;
-	            
-	            // make save to db here 
+	            System.out.println("Product not found for cart item: " + cartEntity);
 	        }
-	        
-	 
-
-	        
 	    }
-	   public List<Product> getProductsByUserId(Long userId) {
-		// Fetch the CartEntity list
-		   List<CartEntity> cartEntities = cartRepository.findByUserId(userId);
-		   
-		   // Extract products from the CartEntity list
-		   List<Product> products = new ArrayList<>();
-		   for(CartEntity cartEntity : cartEntities) {
-			   if(cartEntity.getProductInfo()!= null) {
-				   products.add(cartEntity.getProductInfo());
-				   
-			   }
-		   }
-		   return products;
-		   
 
-	    }
-	
-	
-	   
-	   public List<CartEntity> getCartItems(){
-		   return cartRepository.findAll();
-	   }
-	
-	
-//	Response response = new Response();
-	
-//	public CartEntity createCart(Long userId) {
-//		
-//		CartEntity newCart = new CartEntity();
-//		
-//		//checking the user is there or not based on user id we are checking 
-//		if(!userRepository.existsById(userId))
-//			response.setStatus(false);
-//		    response.setMessage("for the above userid the user exists");
-//		    response.setData(userId);
-//		
-//		// above we are retrieving the user for that user we will check the cart is there or not if there is cart present then we retrieve existing cart
-//		CartEntity existingCart = cartRepository.findByUserId(userId);
-//		if(existingCart != null) {
-//			
-//			response.setStatus(true);
-//			response.setMessage("the cart is there for the above userid");
-//			response.setData(existingCart);
-//			return existingCart;
-//		}else {
-//			newCart.setProductInfo(null);
-//		newCart.setCartId(userId);
-//		newCart.setTotalPrice(0.0);
-//		return cartRepository.save(newCart);
-//		}
-		
-		
-//	public CartEntity getCartByUserId(Long userId) {
-//		CartEntity getCart = cartRepository.findByUserId(userId);
-//		return getCart;
-//		
-//		}
+	    System.out.println("Valid cartEntities after validation => " + validCartEntities);
+	    return validCartEntities; // Returning only cart items with valid products
+	}
 
-//	public CartEntity getCartByUserId(Long userId) {
-//		return cartRepository.findByUserId(userId);
-//	}
-//		
-				
-		
-////		Response response = new Response();
-//		CartEntity cart = new CartEntity();
-//    	cart.setUserId(userId);
-//		cart.setTotalPrice(0.0);
-////		cart.setCreatedDate(LocalDateTime.now());
-////		cart.setUpdatedDate(LocalDateTime.now());
-//		return cartRepository.save(cart);
-//		}
-//	
-//	public CartEntity getCartByUserId(Long userId) {
-//		return cartRepository.findByUserId(userId);
-//	}
-//	
-//	public CartEntity addItemToCart(Long userId) {
-//	CartEntity cart = getCartByUserId(userId);
-//	if(cart == null) {
-//		cart = createCart(userId);
-//	}
-//	Optional<Product> product = productRepository.findById(item.getProductId());
-//	
-//	item.setPrice(product.get().getPrice());
-//	
-//	item.setCart(cart);
-//	cart.getItems().add(item);
-//	cart.setTotalPrice(cart.getTotalPrice() + (item.getPrice() * item.getQuantity()));
-//	return cartRepository.save(cart);
+
+	public List<CartEntity> getCartItems() {
+		return cartRepository.findAll();
+	}
+
+	public void removeItemFromCart(Long userId, Long productId) {
+		Optional<CartEntity> cartItemOptional = cartRepository.findByUserIdAndProductId(userId, productId);
+		if (cartItemOptional.isPresent()) {
+			cartRepository.delete(cartItemOptional.get());
+			System.out.println("Removed product " + productId + " from user " + userId + "'s cart.");
+		} else {
+			throw new RuntimeException("Cart item not found for user " + userId + " and product " + productId);
+		}
+	}
+
+//    public double getTotalCartPrice(Long userId) {
+//        List<CartEntity> cartEntities = cartRepository.findByUserId(userId);
+//        double totalPrice = 0.0;
 //
-//	}
-//	
-//	public CartEntity updateCartEntityInCart(Long userId,Long itemId,int quantity) {
-//		CartEntity cart = getCartByUserId(userId);
-//		if(cart != null) {
-//			for(CartItem item : cart.getItems()) {
-//				if(item.getId().equals(itemId)) {
-//					item.setQuantity(quantity);
-//					cart.setTotalPrice(cart.getItems().stream().mapToDouble(i -> i.getPrice() * i.getQuantity()).sum());
-//					break;
-//				}
-//			}
-//		}
-//		return cartRepository.save(cart);
-//	}
-//	
-//	public void removeItemFromCart(Long userId,Long itemId) {
-//		CartEntity cart = getCartByUserId(userId);
-//		if(cart != null) {
-//			cart.getItems().removeIf(item -> item.getId().equals(itemId));
-//			cart.setTotalPrice(cart.getItems().stream().mapToDouble(i -> i.getPrice()* i.getQuantity()).sum());
-//			cartRepository.save(cart);
-//			
-//			
-//		}
+//        for (CartEntity cartEntity : cartEntities) {
+//            Optional<Product> productOptional = productRepository.findById(cartEntity.getProductId());
+//            if (productOptional.isPresent()) {
+//            	Long quantity = Optional.ofNullable(cartEntity.getQuantity()).orElse(1L); 
+//                totalPrice += productOptional.get().getPrice() * quantity;
+//            }
+//        }
 //
-//}
+//        return totalPrice;
+//    }
+
+	public double getTotalCartPrice(Long userId) {
+		List<CartEntity> cartEntities = cartRepository.findByUserId(userId);
+		double totalPrice = 0.0;
+
+		for (CartEntity cartEntity : cartEntities) {
+			Optional<Product> productOptional = productRepository.findById(cartEntity.getProductId());
+			if (productOptional.isPresent()) {
+				Long quantity = Optional.ofNullable(cartEntity.getQuantity()).orElse(1L);
+				totalPrice += productOptional.get().getPrice() * quantity;
+			}
+		}
+
+		return totalPrice;
+	}
+
+	public CartEntity updateCartQuantity(CartDto cartDto) {
+		System.out.println("Received CartDto: " + cartDto);
+
+		Optional<CartEntity> cartEntityOptional = cartRepository.findByUserIdAndProductId(cartDto.getUserId(),
+				cartDto.getProductId());
+		System.out.println("Cart item found: " + cartEntityOptional.toString());
+
+		if (!cartEntityOptional.isPresent()) {
+			throw new RuntimeException("Cart item not found");
+		}
+
+		CartEntity cartEntity = cartEntityOptional.get();
+		System.out.println("Previous Quantity=>" + cartEntity);
+
+		if (cartDto.getQuantity() > 0) {
+			System.out.println("cartDto.getQuantity=>" + cartDto.getQuantity());
+
+			cartEntity.setQuantity(cartDto.getQuantity());
+			CartEntity updatedCart = cartRepository.save(cartEntity); // ✅ Save once
+			System.out.println("Updated Quantity: " + updatedCart.getQuantity());
+			return updatedCart;
+		} else {
+			cartRepository.delete(cartEntity); // ✅ Remove item if quantity is 0
+			System.out.println("Item removed from cart");
+			return null;
+		}
+	}
 }
-

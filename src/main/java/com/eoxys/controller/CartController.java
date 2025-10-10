@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,35 +30,55 @@ public class CartController {
 	@Autowired
 	private CartService cartService;
 	
-	@PostMapping("/create-cart-or-update/{userId}")
-    public ResponseEntity<CartEntity> createOrUpdateCart(@RequestBody CartDto cartDto) {
-        CartEntity cart = cartService.createOrUpdateCart(cartDto);
-        return ResponseEntity.ok(cart);
+	  @PostMapping("/addToCart")
+	  @CrossOrigin(origins = "http://localhost:3000")
+	    public ResponseEntity<CartEntity> addToCart(@RequestBody CartDto cartDto) {
+	        CartEntity updatedCart = cartService.addToCart(cartDto);
+	        return ResponseEntity.ok(updatedCart);
+	    }
+
+	    /** 
+	     * API to get all cart items for a user.
+	     */
+	    
+	  @GetMapping("/get-all-cart-items/{userId}")
+	  @CrossOrigin(origins = "http://localhost:3000")
+	  public ResponseEntity<List<CartEntity>> getCartItems(@PathVariable Long userId) {
+	      List<CartEntity> cartItems = cartService.getCartItemsByUserId(userId); // Corrected to return CartEntity
+	      System.out.println("cartItems => " + cartItems);
+	      return ResponseEntity.ok(cartItems);
+	  }
+
+
+	    /** 
+	     * API to remove a product from the cart.
+	     */
+	    @DeleteMapping("/remove/{userId}/{productId}")
+	    @CrossOrigin(origins = "http://localhost:3000")
+	    public ResponseEntity<String> removeFromCart(@PathVariable Long userId, @PathVariable Long productId) {
+	        cartService.removeItemFromCart(userId, productId);
+	        return ResponseEntity.ok("Product removed from cart.");
+	    }
+
+	    /** 
+	     * API to get the total cart price for a user.
+	     */
+	    @GetMapping("/total/{userId}")
+	    @CrossOrigin(origins = "http://localhost:3000")
+	    public ResponseEntity<Double> getTotalPrice(@PathVariable Long userId) {
+	        double totalPrice = cartService.getTotalCartPrice(userId);
+	        return ResponseEntity.ok(totalPrice);
+	    }
+	    
+	    @PutMapping("/updateCartQuantity")
+	    @CrossOrigin(origins = "http://localhost:3000")
+	    public ResponseEntity<CartEntity> updateCartQuantity(@RequestBody CartDto cartDto) {
+	        CartEntity updatedCart = cartService.updateCartQuantity(cartDto);
+	        System.out.println("updatedCart => "+updatedCart);
+	        return ResponseEntity.ok(updatedCart);
+	    }
+
 	}
-	@GetMapping("/get-cart-items")
-	public ResponseEntity<List<CartEntity>> getCartItems() {
-	    List<CartEntity> cartItems = cartService.getCartItems();
-	    return ResponseEntity.ok(cartItems);
-	}
-	
-	
-    @GetMapping("/get-listof-cart-items/{userId}") 
-    public ResponseEntity<List<Product>> getProductsByUserId(@PathVariable Long userId) {
-        List<Product> products = cartService.getProductsByUserId(userId); 
-        return ResponseEntity.ok(products); 
-    }
-}
-	
-//	@GetMapping("/gettingcart")
-//	public ResponseEntity<CartEntity> gettingCart(Long userId){
-//		return new ResponseEntity<>(cartService.gettingCart(userId),HttpStatus.ACCEPTED);
-//}
-//	
-//	@PostMapping("/additemstocart")
-//	public ResponseEntity<CartEntity> addItemToCart(Long userId){
-//		CartEntity updatedCart = cartService.addItemToCart(userId);
-//		return  new ResponseEntity<>(updatedCart,HttpStatus.OK);
-//	}
 	
 	
 

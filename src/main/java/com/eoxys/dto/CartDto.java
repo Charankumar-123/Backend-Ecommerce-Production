@@ -1,9 +1,12 @@
 package com.eoxys.dto;
 
+import jakarta.persistence.Column;
+
 public class CartDto {
-	private Long userId;
+	@Column(name="user_id")
+	 Long userId;
 	private Long productId;
-	private Long quantity;
+	private Long quantity = 1L;
 	public Long getUserId() {
 		return userId;
 	}

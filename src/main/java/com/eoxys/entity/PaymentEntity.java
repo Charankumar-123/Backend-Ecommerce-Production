@@ -1,4 +1,4 @@
-package com.eoxys.entity;
+package com.eoxys.entity;	
 
 import com.eoxys.utils.PaymentStatus;
 

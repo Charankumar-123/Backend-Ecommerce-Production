@@ -1,11 +1,19 @@
 package com.eoxys.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Example;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.eoxys.dto.Response;
@@ -16,6 +24,12 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class UsersService {
+	
+	@Autowired
+	AuthenticationManager authManager;
+	
+	@Autowired
+	private JWTService jwtService;
 
 	@Autowired
 	private UsersRepository usersRepository;
@@ -42,15 +56,6 @@ public class UsersService {
 			throw new RuntimeException("error while saving the user");
 
 		}
-
-//		Response userjson = new Response();
-//		
-//		UsersEntity usersData = usersRepository.save(userEntity);
-//		userjson.setStatus(true);
-//		userjson.setMessage("user added successfully");
-//		userjson.setData(usersData);
-//		System.out.println("DATA JSON => " + userjson);
-//		return userjson;
 	}
 
 	public Response gettingUser() {
@@ -65,44 +70,54 @@ public class UsersService {
 		return userjson;
 
 	}
+	
+	public UsersEntity findByEmail(String email) {
+        return usersRepository.findByEmail(email).orElse(null);
+    }
 
+
+	
 	public Response validationUser(String email, String password) {
-		// Step 1: Check if the email exists in the database
-		Optional<UsersEntity> userOptional = usersRepository.findByEmail(email);
-		Response response = new Response();
-      
-		if (userOptional.isEmpty()) {
-			response.setStatus(false);
-			response.setMessage("the above email is invalid");
-			response.setData(null);
-		} else {
-			UsersEntity user = userOptional.get();
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        Optional<UsersEntity> userOptional = usersRepository.findByEmail(email);
+        Response response = new Response();
 
-			if (password == null) {
-				response.setStatus(false);
-				response.setMessage("the password is empty");
-				response.setData(null);
-			} else {
-				if (!user.getPassword().equals(password)) {
-					response.setStatus(false);
-					response.setMessage("the passwords is invalid");
-					response.setData(null);
-				} else {
-					response.setStatus(true);
-					response.setMessage("login success");
-					response.setData(user);
-//					return response;
-				}
+        if (userOptional.isEmpty()) {
+            response.setStatus(false);
+            response.setMessage("The email is invalid");
+            response.setData(null);
+            return response;
+        }
 
-			}
-		}
+        UsersEntity user = userOptional.get();
 
-		// Step 3: Validate the password
+        if (password == null || !passwordEncoder.matches(password, user.getPassword())) {
+            response.setStatus(false);
+            response.setMessage("Invalid password");
+            response.setData(null);
+            return response;
+        }
 
-		// Step 2: Get the user details from the database
+        // Generate JWT token using email
+        String token = jwtService.generateToken(user.getEmail());
+        System.out.println("token from userservice=>"+token);
 
-		return response;
-	}
+        // Prepare response data
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("token", token);
+        responseData.put("userID", user.getUserID());
+        responseData.put("userName", user.getUserName());
+        responseData.put("email", user.getEmail());
+        responseData.put("mobile", user.getMobile());
+        responseData.put("role", user.getRole());
+
+        response.setStatus(true);
+        response.setMessage("Login successful");
+        response.setData(responseData);
+
+        return response;
+    }
+
 
 	@Transactional
 	public Response signUp(UsersEntity userEntity) {
@@ -115,7 +130,12 @@ public class UsersService {
 				response.setMessage("User already exists");
 				return response;
 			}
-//    	userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+			
+			
+			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	        userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+	        
+	        
 			UsersEntity registerUser = usersRepository.save(userEntity);
 			response.setStatus(true);
 			response.setMessage("user is successfully registered");
@@ -130,13 +150,44 @@ public class UsersService {
 
 		}
 
-//	public UsersEntity createUser(UsersEntity userEntity) {
-//		
-//		if(usersRepository.existsByEmail(userEntity.getEmail())) {
-//			throw new IllegalArgumentException("user already exist in this email");
-//		}
-//		
-//	}
+
 
 	}
-}
+	public String verify(UsersEntity user) {
+	    try {
+	        // Fetch user from DB to get the hashed password
+	        Optional<UsersEntity> existingUser = usersRepository.findByEmail(user.getEmail());
+
+	        if (existingUser.isEmpty()) {
+	            return "User not found";
+	        }
+
+	        UsersEntity dbUser = existingUser.get();
+	        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+	        // Validate password using BCrypt
+	        if (!passwordEncoder.matches(user.getPassword(), dbUser.getPassword())) {
+	            return "Invalid password";
+	        }
+
+	        // Authenticate user
+	        Authentication authentication = authManager.authenticate(
+	            new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())
+	        );
+
+	        if (authentication.isAuthenticated()) {
+	            return jwtService.generateToken(user.getEmail());
+	        } else {
+	            return "Authentication failed";
+	        }
+	    } catch (BadCredentialsException e) {
+	        return "Invalid credentials";
+	    } catch (Exception e) {
+	        return "Error during authentication: " + e.getMessage();
+	    }
+	}
+		
+		
+		
+	}
+

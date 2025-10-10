@@ -10,7 +10,10 @@ import com.eoxys.entity.UsersEntity;
 public interface UsersRepository extends JpaRepository<UsersEntity, Long> {
 	boolean existsByEmail(String email);
 	boolean existsById(Long userId);
-	Optional<UsersEntity> findByEmail(String email);
+//	UsersEntity findByUsername(String email);
+//	UsersEntity findByEmail(String email);
+	Optional<UsersEntity> findByEmail(String email); 
+
 	
 
 }
