@@ -58,6 +58,11 @@ public class UsersService {
 		}
 	}
 
+	public UsersEntity findByEmail(String email) {
+		return usersRepository.findByEmail(email).orElse(null);
+	}
+
+
 	public Response gettingUser() {
 
 		Response userjson = new Response();
@@ -103,10 +108,16 @@ public class UsersService {
         System.out.println("token from userservice=>"+token);
 
         // Prepare response data
+        String effectiveName = (user.getUserName() != null && !user.getUserName().trim().isEmpty())
+                ? user.getUserName()
+                : (user.getEmail() != null ? user.getEmail().split("@")[0] : "User");
+
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("token", token);
         responseData.put("userID", user.getUserID());
-        responseData.put("userName", user.getUserName());
+        responseData.put("userId", user.getUserID());
+        responseData.put("userName", effectiveName);
+        responseData.put("name", effectiveName);
         responseData.put("email", user.getEmail());
         responseData.put("mobile", user.getMobile());
         responseData.put("role", user.getRole());
@@ -132,9 +143,14 @@ public class UsersService {
 			}
 			
 			
+			if (userEntity.getRole() == null || userEntity.getRole().trim().isEmpty()) {
+				userEntity.setRole("user");
+			} else {
+				userEntity.setRole(userEntity.getRole().trim().toLowerCase());
+			}
+
 			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 	        userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
-	        
 	        
 			UsersEntity registerUser = usersRepository.save(userEntity);
 			response.setStatus(true);

@@ -49,16 +49,25 @@ public class UsersController {
 	
 	
 	@CrossOrigin(origins = "http://localhost:3000")
-	@GetMapping("/users/me")
-	public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal User userDetails) {
-	    UsersEntity user = usersService.findByEmail(userDetails.getUsername());
+	@GetMapping({"/me", "/users/me"})
+	public ResponseEntity<?> getCurrentUser(org.springframework.security.core.Authentication authentication) {
+	    if (authentication == null || authentication.getName() == null) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated");
+	    }
+	    UsersEntity user = usersService.findByEmail(authentication.getName());
 	    if (user == null) {
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
 	    }
 
+	    String effectiveName = (user.getUserName() != null && !user.getUserName().trim().isEmpty())
+	            ? user.getUserName()
+	            : (user.getEmail() != null ? user.getEmail().split("@")[0] : "User");
+
 	    Map<String, Object> userInfo = new HashMap<>();
 	    userInfo.put("userID", user.getUserID());
-	    userInfo.put("userName", user.getUserName());
+	    userInfo.put("userId", user.getUserID());
+	    userInfo.put("userName", effectiveName);
+	    userInfo.put("name", effectiveName);
 	    userInfo.put("email", user.getEmail());
 	    userInfo.put("mobile", user.getMobile());
 	    userInfo.put("role", user.getRole());

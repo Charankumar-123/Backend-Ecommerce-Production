@@ -13,12 +13,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import com.eoxys.service.MyUserDetailsService;
 
@@ -29,14 +29,17 @@ public class SecurityConfig {
     private final JWTFilter jwtFilter;
     private final GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler;
 
+    @Autowired(required = false)
+    private ClientRegistrationRepository clientRegistrationRepository;
+
     public SecurityConfig(JWTFilter jwtFilter, GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler) {
         this.jwtFilter = jwtFilter;
         this.googleOAuth2SuccessHandler = googleOAuth2SuccessHandler;
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new MyUserDetailsService();
+    public UserDetailsService userDetailsService(MyUserDetailsService myUserDetailsService) {
+        return myUserDetailsService;
     }
 
     @Bean
@@ -55,9 +58,13 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2Login(oauth2 -> oauth2.successHandler(googleOAuth2SuccessHandler))
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        if (clientRegistrationRepository != null) {
+            http.oauth2Login(oauth2 -> oauth2.clientRegistrationRepository(clientRegistrationRepository).successHandler(googleOAuth2SuccessHandler));
+        }
+
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
