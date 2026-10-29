@@ -38,10 +38,16 @@ buildNumber.properties
 
 # Eclipse / Spring Tool Suite (STS)
 .metadata
+**/.metadata/
 .classpath
+**/.classpath
 .project
+**/.project
 .settings/
+**/.settings/
+**/.settings/**
 .factorypath
+**/.factorypath
 bin/
 tmp/
 *.tmp
