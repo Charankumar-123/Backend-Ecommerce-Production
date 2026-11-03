@@ -58,9 +58,9 @@ public class UsersService {
 		}
 	}
 
-	public UsersEntity findByEmail(String email) {
-		return usersRepository.findByEmail(email).orElse(null);
-	}
+//	public UsersEntity findByEmail(String email) {
+//		return usersRepository.findByEmail(email).orElse(null);
+//	}
 
 
 	public Response gettingUser() {
