@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
  @SpringBootApplication
  @EnableAutoConfiguration
- @ComponentScan(basePackages = "com.eoxys")
+ @ComponentScan(basePackages = {"com.eoxys", "webSocket"})
  @EntityScan(basePackages = "com.eoxys.entity")
  @EnableJpaRepositories(basePackages = "com.eoxys.repository")
 public class CrudApplication {

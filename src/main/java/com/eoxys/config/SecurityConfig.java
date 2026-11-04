@@ -48,7 +48,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(
 						auth -> auth
 								.requestMatchers("/users/login", "/users/signup", "/products/getproducts",
-										"/get-all-cart-items/**", "/addToCart")
+										"/get-all-cart-items/**", "/addToCart", "/ws/**", "/tracking/**")
 								.permitAll().anyRequest().authenticated())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
