@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,7 @@ import com.eoxys.service.MyUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
 	private final JWTFilter jwtFilter;
@@ -47,9 +49,17 @@ public class SecurityConfig {
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
 						auth -> auth
-								.requestMatchers("/users/login", "/users/signup", "/products/getproducts",
-										"/get-all-cart-items/**", "/addToCart", "/ws/**", "/tracking/**")
-								.permitAll().anyRequest().authenticated())
+								.requestMatchers(
+										"/users/login", "/users/signup", "/products/getproducts",
+										"/get-all-cart-items/**", "/addToCart", "/remove/**", "/total/**",
+										"/updateCartQuantity", "/ws/**", "/tracking/**", "/api/orders/**")
+								.permitAll()
+								// Role-based endpoints
+								.requestMatchers("/api/seller/**").hasAnyRole("SELLER", "ADMIN")
+								.requestMatchers("/api/inventory/**").hasAnyRole("INVENTORY", "ADMIN")
+								.requestMatchers("/api/warehouse/**").hasAnyRole("WAREHOUSE", "ADMIN")
+								.requestMatchers("/api/admin/**").hasRole("ADMIN")
+								.anyRequest().authenticated())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
 		if (clientRegistrationRepository != null) {

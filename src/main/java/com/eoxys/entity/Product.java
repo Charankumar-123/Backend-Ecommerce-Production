@@ -1,10 +1,16 @@
 package com.eoxys.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,15 +21,48 @@ import lombok.NoArgsConstructor;
 public class Product {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	
 	@Column(name="product_id")
 	private Long productId;
+
+	@Column(name="seller_id")
+	private Long sellerId;
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.DETACH, CascadeType.REFRESH })
+	@JoinColumn(name = "seller_id", referencedColumnName = "user_id", insertable = false, nullable = true, updatable = false)
+	@JsonIgnoreProperties({"password", "carts", "sellerProducts"})
+	private UsersEntity sellerInfo;
+	
     private String name;
     private String description;
     private String image;
     private String category;
     private Integer quantity;
     private float price;
+
+	public Long getSellerId() {
+		return sellerId;
+	}
+
+	public void setSellerId(Long sellerId) {
+		this.sellerId = sellerId;
+	}
+
+	public UsersEntity getSellerInfo() {
+		return sellerInfo;
+	}
+
+	public void setSellerInfo(UsersEntity sellerInfo) {
+		this.sellerInfo = sellerInfo;
+	}
+
+	public Long getProductId() {
+		return productId;
+	}
+
+	public void setProductId(Long productId) {
+		this.productId = productId;
+	}
+
     public String getDescription() {
 		return description;
 	}
@@ -44,7 +83,7 @@ public class Product {
 	}
 	
 	public long getId() {
-		return productId;
+		return productId != null ? productId : 0L;
 	}
 	public void setId(long id) {
 		this.productId = id;
@@ -69,10 +108,6 @@ public class Product {
 	}
 	@Override
 	public String toString() {
-		return "Product [id=" + productId + ", name=" + name + ", quantity=" + quantity + ", price=" + price + "]";
+		return "Product [id=" + productId + ", sellerId=" + sellerId + ", name=" + name + ", quantity=" + quantity + ", price=" + price + "]";
 	}
-	
-    
-    
-
 }

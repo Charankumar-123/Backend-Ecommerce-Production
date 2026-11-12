@@ -1,15 +1,18 @@
 package com.eoxys.entity;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.eoxys.utils.UserRole;
+
 public class UserPrincipal implements UserDetails {
     
-    private final UsersEntity user; // Remove @Autowired, use constructor injection
+    private final UsersEntity user;
     
     public UserPrincipal(UsersEntity user) {
         this.user = user;
@@ -17,8 +20,15 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Return the user's role from UsersEntity instead of hardcoding "USER"
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+        UserRole userRole = UserRole.fromString(user.getRole());
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(userRole.toAuthority()));
+        
+        // Backward compatibility for existing check matchers
+        if (userRole == UserRole.CUSTOMER) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+        return authorities;
     }
 
     @Override
@@ -28,7 +38,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail(); // Return email instead of userName
+        return user.getEmail();
     }
     
     public String getEmail() {
@@ -36,7 +46,7 @@ public class UserPrincipal implements UserDetails {
     }
     
     public String getRole() {
-        return user.getRole();
+        return UserRole.fromString(user.getRole()).name();
     }
     
     public Long getMobile() {
@@ -47,24 +57,23 @@ public class UserPrincipal implements UserDetails {
         return user.getUserID();
     }
 
-    // Required UserDetails methods (default implementations)
     @Override
     public boolean isAccountNonExpired() {
-        return true; // Customize if needed
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // Customize if needed
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // Customize if needed
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // Customize if needed
+        return true;
     }
 }

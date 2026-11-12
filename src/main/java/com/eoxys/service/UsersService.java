@@ -103,9 +103,10 @@ public class UsersService {
             return response;
         }
 
-        // Generate JWT token using email
-        String token = jwtService.generateToken(user.getEmail());
-        System.out.println("token from userservice=>"+token);
+        // Standardize role and generate JWT token
+        String standardizedRole = com.eoxys.utils.UserRole.fromString(user.getRole()).name();
+        String token = jwtService.generateToken(user.getEmail(), standardizedRole);
+        System.out.println("token from userservice=>" + token);
 
         // Prepare response data
         String effectiveName = (user.getUserName() != null && !user.getUserName().trim().isEmpty())
@@ -120,7 +121,7 @@ public class UsersService {
         responseData.put("name", effectiveName);
         responseData.put("email", user.getEmail());
         responseData.put("mobile", user.getMobile());
-        responseData.put("role", user.getRole());
+        responseData.put("role", standardizedRole);
 
         response.setStatus(true);
         response.setMessage("Login successful");
@@ -143,11 +144,10 @@ public class UsersService {
 			}
 			
 			
-			if (userEntity.getRole() == null || userEntity.getRole().trim().isEmpty()) {
-				userEntity.setRole("user");
-			} else {
-				userEntity.setRole(userEntity.getRole().trim().toLowerCase());
-			}
+			String roleInput = (userEntity.getRole() == null || userEntity.getRole().trim().isEmpty())
+					? "CUSTOMER"
+					: userEntity.getRole().trim();
+			userEntity.setRole(com.eoxys.utils.UserRole.fromString(roleInput).name());
 
 			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 	        userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));

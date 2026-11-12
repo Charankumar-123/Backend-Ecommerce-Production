@@ -1,6 +1,8 @@
 package com.eoxys.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,9 +57,12 @@ public class CartController {
 	     */
 	    @DeleteMapping("/remove/{userId}/{productId}")
 	    @CrossOrigin(origins = "http://localhost:3000")
-	    public ResponseEntity<String> removeFromCart(@PathVariable Long userId, @PathVariable Long productId) {
+	    public ResponseEntity<Map<String, Object>> removeFromCart(@PathVariable Long userId, @PathVariable Long productId) {
 	        cartService.removeItemFromCart(userId, productId);
-	        return ResponseEntity.ok("Product removed from cart.");
+	        Map<String, Object> response = new HashMap<>();
+	        response.put("status", true);
+	        response.put("message", "Product removed from cart successfully");
+	        return ResponseEntity.ok(response);
 	    }
 
 	    /** 

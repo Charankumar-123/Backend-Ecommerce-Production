@@ -33,9 +33,14 @@ public class JWTService {
         }
     }
 
-    // Generate token using email instead of username
+    // Generate token using email and role
     public String generateToken(String email) {
+        return generateToken(email, "CUSTOMER");
+    }
+
+    public String generateToken(String email, String role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role);
         return Jwts.builder()
                 .claims()
                 .add(claims)
@@ -50,6 +55,11 @@ public class JWTService {
     // Extract email from the token
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject); // Subject is now email
+    }
+
+    // Extract role from the token
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> (String) claims.get("role"));
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {

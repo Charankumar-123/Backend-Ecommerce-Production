@@ -70,7 +70,7 @@ public class UsersController {
 	    userInfo.put("name", effectiveName);
 	    userInfo.put("email", user.getEmail());
 	    userInfo.put("mobile", user.getMobile());
-	    userInfo.put("role", user.getRole());
+	    userInfo.put("role", com.eoxys.utils.UserRole.fromString(user.getRole()).name());
 
 	    return ResponseEntity.ok(userInfo);
 	}

@@ -24,7 +24,7 @@ public class CartEntity {
     @Column(name = "cart_id")
     private Long cartId;
     
-    @Column(name="product_id")
+    @Column(name=" ")
     private Long productId;
     
     @Column(name = "user_id") //reference only

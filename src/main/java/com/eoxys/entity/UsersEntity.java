@@ -35,6 +35,10 @@ public class UsersEntity {
 	@OneToMany(mappedBy = "userInfo", cascade = CascadeType.ALL)
     private List<CartEntity> carts = new ArrayList<>();
 	
+	@com.fasterxml.jackson.annotation.JsonIgnore
+	@OneToMany(mappedBy = "sellerInfo", cascade = CascadeType.ALL)
+	private List<Product> sellerProducts = new ArrayList<>();
+	
 	
 	
 	public Long getUserID() {
@@ -72,6 +76,20 @@ public class UsersEntity {
 	}
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public List<CartEntity> getCarts() {
+		return carts;
+	}
+	public void setCarts(List<CartEntity> carts) {
+		this.carts = carts;
+	}
+
+	public List<Product> getSellerProducts() {
+		return sellerProducts;
+	}
+	public void setSellerProducts(List<Product> sellerProducts) {
+		this.sellerProducts = sellerProducts;
 	}
 	
 	

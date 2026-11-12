@@ -30,6 +30,12 @@ public class ProductController {
 	@PostMapping("/addproducts")
 	@CrossOrigin(origins = "http://localhost:3000")
 	public ResponseEntity<Product> addProduct(@RequestBody Product product){
+		if (product.getSellerId() == null) {
+			org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+			if (auth != null && auth.getPrincipal() instanceof com.eoxys.entity.UserPrincipal principal) {
+				product.setSellerId(principal.getUserId());
+			}
+		}
 		return new ResponseEntity<>(productService.addProduct(product), HttpStatus.ACCEPTED);
 	}
 	
