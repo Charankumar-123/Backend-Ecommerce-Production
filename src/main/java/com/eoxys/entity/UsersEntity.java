@@ -32,6 +32,7 @@ public class UsersEntity {
 	private String password;
 	private String role;
 	
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	@OneToMany(mappedBy = "userInfo", cascade = CascadeType.ALL)
     private List<CartEntity> carts = new ArrayList<>();
 	

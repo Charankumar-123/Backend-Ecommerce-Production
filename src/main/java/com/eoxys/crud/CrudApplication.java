@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
  @SpringBootApplication
  @EnableAutoConfiguration
+ @org.springframework.scheduling.annotation.EnableAsync
  @ComponentScan(basePackages = {"com.eoxys", "webSocket"})
  @EntityScan(basePackages = "com.eoxys.entity")
  @EnableJpaRepositories(basePackages = "com.eoxys.repository")

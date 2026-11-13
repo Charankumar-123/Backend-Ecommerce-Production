@@ -49,8 +49,10 @@ public class SecurityConfig {
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(
 						auth -> auth
+								.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+								.requestMatchers("/error").permitAll()
 								.requestMatchers(
-										"/users/login", "/users/signup", "/products/getproducts",
+										"/users/**", "/products/**",
 										"/get-all-cart-items/**", "/addToCart", "/remove/**", "/total/**",
 										"/updateCartQuantity", "/ws/**", "/tracking/**", "/api/orders/**")
 								.permitAll()
@@ -60,6 +62,17 @@ public class SecurityConfig {
 								.requestMatchers("/api/warehouse/**").hasAnyRole("WAREHOUSE", "ADMIN")
 								.requestMatchers("/api/admin/**").hasRole("ADMIN")
 								.anyRequest().authenticated())
+				.exceptionHandling(ex -> ex
+						.authenticationEntryPoint((request, response, authException) -> {
+							response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+							response.setContentType("application/json");
+							response.getWriter().write("{\"status\":false,\"message\":\"Unauthorized: Missing, invalid, or expired session token. Please log in.\"}");
+						})
+						.accessDeniedHandler((request, response, accessDeniedException) -> {
+							response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+							response.setContentType("application/json");
+							response.getWriter().write("{\"status\":false,\"message\":\"Access Denied: Your account role does not have permission to access this resource.\"}");
+						}))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
 		if (clientRegistrationRepository != null) {

@@ -14,6 +14,7 @@ import com.eoxys.entity.OrderItemsEntity;
 import com.eoxys.entity.OrdersEntity;
 import com.eoxys.entity.PaymentEntity;
 import com.eoxys.entity.Product;
+import com.eoxys.entity.UsersEntity;
 import com.eoxys.repository.CartRepository;
 import com.eoxys.repository.OrderItemsRepository;
 import com.eoxys.repository.OrdersRepository;
@@ -41,6 +42,15 @@ public class OrdersService {
 
     @Autowired
     private PaymentRepository paymentRepository;
+
+    @Autowired
+    private OrderTrackingService orderTrackingService;
+
+    @Autowired
+    private com.eoxys.repository.UsersRepository usersRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Transactional
     public Response createOrderOrAddOrder(Long userId) {
@@ -73,17 +83,34 @@ public class OrdersService {
         // Save the order entity
         OrdersEntity savedOrder = orderRepository.save(orderEntity);
 
-        // Create and save order items
+        // Create and save order items & deduct stock from inventory
         for (CartEntity cartEntity : cartItems) {
             Optional<Product> productInfo = productRepository.findById(cartEntity.getProductId());
             if (productInfo.isPresent()) {
+                Product product = productInfo.get();
+
+                // Deduct stock in tbl_product for Inventory & Seller tracking
+                int currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
+                long orderedQtyLong = cartEntity.getQuantity() != null ? cartEntity.getQuantity() : 1L;
+                int orderedQty = (int) orderedQtyLong;
+                int remainingStock = Math.max(0, currentStock - orderedQty);
+                product.setQuantity(remainingStock);
+                productRepository.save(product);
+
                 OrderItemsEntity orderItem = new OrderItemsEntity();
                 orderItem.setOrderId(savedOrder.getOrderId());
                 orderItem.setProductId(cartEntity.getProductId());
-                orderItem.setQuantity(cartEntity.getQuantity());
-                orderItem.setPrice(cartEntity.getQuantity() * productInfo.get().getPrice());
+                orderItem.setQuantity(orderedQtyLong);
+                orderItem.setPrice(orderedQtyLong * product.getPrice());
                 orderItemsRepository.save(orderItem);
             }
+        }
+
+        // Auto-initialize real-time tracking for the order
+        try {
+            orderTrackingService.getTrackingDetails(savedOrder.getOrderId());
+        } catch (Exception ex) {
+            System.err.println("Could not auto-initialize tracking: " + ex.getMessage());
         }
 
         // Remove cart items for the user
@@ -99,6 +126,15 @@ public class OrdersService {
                 payment.setPaymentStatus(PaymentStatus.FAIL);
             }
             paymentRepository.save(payment); // Save the updated payment status
+        }
+
+        // Asynchronously dispatch Order Confirmation Email & SMS
+        try {
+            UsersEntity user = usersRepository.findById(userId).orElse(null);
+            List<OrderItemsEntity> savedItems = orderItemsRepository.findByOrderId(savedOrder.getOrderId());
+            notificationService.sendOrderPlacedNotifications(user, savedOrder, savedItems);
+        } catch (Exception ex) {
+            System.err.println("Could not trigger notifications: " + ex.getMessage());
         }
 
         // Set the response

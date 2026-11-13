@@ -1,8 +1,5 @@
 package com.eoxys.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,7 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -24,7 +20,7 @@ public class CartEntity {
     @Column(name = "cart_id")
     private Long cartId;
     
-    @Column(name=" ")
+    @Column(name="product_id")
     private Long productId;
     
     @Column(name = "user_id") //reference only
@@ -33,7 +29,8 @@ public class CartEntity {
     private Long quantity;
 
     
-    @ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH })
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH })
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, nullable = true, updatable = false)
 	private UsersEntity userInfo;
     

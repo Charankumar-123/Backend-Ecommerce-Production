@@ -85,7 +85,7 @@ public class UsersController {
 	public ResponseEntity<Response> validationuser(@RequestBody LoginRequest loginRequest) {
 	    Response response = usersService.validationUser(loginRequest.getEmail(), loginRequest.getPassword());
 
-	    return new ResponseEntity<>(response, response.isStatus() ? HttpStatus.OK : HttpStatus.UNAUTHORIZED);
+	    return ResponseEntity.ok(response);
 	}
 
 

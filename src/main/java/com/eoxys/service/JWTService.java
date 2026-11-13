@@ -21,16 +21,12 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JWTService {
 
-    private String secretKey = "";
+    // Stable 512-bit valid Base64-encoded secret key for HMAC-SHA JWT signing
+    private static final String DEFAULT_SECRET = "TXlFQ29tbWVyY2VTZWNyZXRLZXlGb3JKd3RTaWduaW5nTXVzdEJlQXRMZWFzdDI1NkJpdHNMb25nMTIzNDU2Nzg=";
+    private String secretKey = DEFAULT_SECRET;
 
     public JWTService() {
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sk = keyGen.generateKey();
-            secretKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        this.secretKey = DEFAULT_SECRET;
     }
 
     // Generate token using email and role

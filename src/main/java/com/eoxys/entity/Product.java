@@ -27,9 +27,9 @@ public class Product {
 	@Column(name="seller_id")
 	private Long sellerId;
 
-	@ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.DETACH, CascadeType.REFRESH })
+	@com.fasterxml.jackson.annotation.JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "seller_id", referencedColumnName = "user_id", insertable = false, nullable = true, updatable = false)
-	@JsonIgnoreProperties({"password", "carts", "sellerProducts"})
 	private UsersEntity sellerInfo;
 	
     private String name;
@@ -82,10 +82,10 @@ public class Product {
 		this.category = category;
 	}
 	
-	public long getId() {
-		return productId != null ? productId : 0L;
+	public Long getId() {
+		return productId;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.productId = id;
 	}
 	public String getName() {

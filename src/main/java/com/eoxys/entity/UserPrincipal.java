@@ -23,10 +23,12 @@ public class UserPrincipal implements UserDetails {
         UserRole userRole = UserRole.fromString(user.getRole());
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(userRole.toAuthority()));
+        authorities.add(new SimpleGrantedAuthority(userRole.name()));
         
         // Backward compatibility for existing check matchers
         if (userRole == UserRole.CUSTOMER) {
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            authorities.add(new SimpleGrantedAuthority("USER"));
         }
         return authorities;
     }
