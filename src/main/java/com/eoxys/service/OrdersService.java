@@ -54,6 +54,11 @@ public class OrdersService {
 
     @Transactional
     public Response createOrderOrAddOrder(Long userId) {
+        return createOrderOrAddOrder(userId, null);
+    }
+
+    @Transactional
+    public Response createOrderOrAddOrder(Long userId, com.eoxys.dto.OrderRequestDto orderRequest) {
         Response response = new Response();
 
         // Retrieve cart items for the user
@@ -66,6 +71,17 @@ public class OrdersService {
 
         OrdersEntity orderEntity = new OrdersEntity();
         orderEntity.setUserId(userId);
+
+        if (orderRequest != null) {
+            orderEntity.setDeliveryAddress(orderRequest.getDeliveryAddress());
+            orderEntity.setDeliveryCity(orderRequest.getDeliveryCity());
+            orderEntity.setDeliveryPincode(orderRequest.getDeliveryPincode());
+            orderEntity.setDeliveryState(orderRequest.getDeliveryState());
+            orderEntity.setLatitude(orderRequest.getLatitude());
+            orderEntity.setLongitude(orderRequest.getLongitude());
+            orderEntity.setRecipientName(orderRequest.getRecipientName());
+            orderEntity.setRecipientPhone(orderRequest.getRecipientPhone());
+        }
 
         // Calculate total price
         float totalPrice = 0;

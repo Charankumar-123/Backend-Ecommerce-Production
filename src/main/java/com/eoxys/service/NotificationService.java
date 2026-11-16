@@ -186,6 +186,15 @@ public class NotificationService {
      * Builds responsive HTML receipt email.
      */
     private String buildOrderConfirmationHtml(String customerName, OrdersEntity order, String itemsHtml) {
+        String deliveryAddressHtml = "";
+        if (order.getDeliveryAddress() != null && !order.getDeliveryAddress().isEmpty()) {
+            deliveryAddressHtml = "<div style='background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin: 16px 0; text-align: left;'>" +
+                "<div style='font-size: 12px; font-weight: 700; color: #00796b; text-transform: uppercase;'>📍 Delivery Destination</div>" +
+                "<div style='font-size: 14px; color: #334155; margin-top: 4px; font-weight: 600;'>" + (order.getRecipientName() != null ? order.getRecipientName() + " | " : "") + order.getDeliveryAddress() + "</div>" +
+                "<div style='font-size: 13px; color: #64748b; margin-top: 2px;'>" + (order.getDeliveryCity() != null ? order.getDeliveryCity() + ", " : "") + (order.getDeliveryState() != null ? order.getDeliveryState() + " - " : "") + (order.getDeliveryPincode() != null ? order.getDeliveryPincode() : "") + "</div>" +
+                "</div>";
+        }
+
         return "<!DOCTYPE html>" +
             "<html>" +
             "<body style='font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px;'>" +
@@ -197,6 +206,7 @@ public class NotificationService {
             "    <div style='padding: 30px;'>" +
             "      <h2 style='color: #1e293b; font-size: 20px; margin-top: 0;'>Thank you for your order, " + customerName + "!</h2>" +
             "      <p style='color: #64748b; font-size: 14px; line-height: 1.6;'>We've received your order <strong>#ORD-" + order.getOrderId() + "</strong> and are preparing it for fulfillment.</p>" +
+            deliveryAddressHtml +
             "      <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>" +
             "        <thead>" +
             "          <tr style='background: #f1f5f9; text-align: left;'>" +

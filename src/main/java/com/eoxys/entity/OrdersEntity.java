@@ -37,6 +37,30 @@ public class OrdersEntity {
     
     private float totalPrice; 
 
+    @Column(name = "delivery_address", length = 1000)
+    private String deliveryAddress;
+
+    @Column(name = "delivery_city")
+    private String deliveryCity;
+
+    @Column(name = "delivery_pincode")
+    private String deliveryPincode;
+
+    @Column(name = "delivery_state")
+    private String deliveryState;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "recipient_name")
+    private String recipientName;
+
+    @Column(name = "recipient_phone")
+    private String recipientPhone;
+
     @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, nullable = true, updatable = false)
     private UsersEntity userOrderInfo;
@@ -102,6 +126,70 @@ public class OrdersEntity {
 
     public void setOrderItemsInfo(List<OrderItemsEntity> orderItemsInfo) {
         this.orderItemsInfo = orderItemsInfo;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public String getDeliveryCity() {
+        return deliveryCity;
+    }
+
+    public void setDeliveryCity(String deliveryCity) {
+        this.deliveryCity = deliveryCity;
+    }
+
+    public String getDeliveryPincode() {
+        return deliveryPincode;
+    }
+
+    public void setDeliveryPincode(String deliveryPincode) {
+        this.deliveryPincode = deliveryPincode;
+    }
+
+    public String getDeliveryState() {
+        return deliveryState;
+    }
+
+    public void setDeliveryState(String deliveryState) {
+        this.deliveryState = deliveryState;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    public String getRecipientPhone() {
+        return recipientPhone;
+    }
+
+    public void setRecipientPhone(String recipientPhone) {
+        this.recipientPhone = recipientPhone;
     }
 
 

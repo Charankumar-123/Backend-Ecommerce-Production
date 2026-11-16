@@ -26,10 +26,12 @@ public class OrdersController {
 	private OrdersService ordersService;
 
 	@PostMapping("/create-order/{userId}")
-    public ResponseEntity<Response> createOrderOrAddOrder(@PathVariable Long userId) {
-        Response order = ordersService.createOrderOrAddOrder(userId);
+    public ResponseEntity<Response> createOrderOrAddOrder(
+            @PathVariable Long userId,
+            @org.springframework.web.bind.annotation.RequestBody(required = false) com.eoxys.dto.OrderRequestDto orderRequest) {
+        Response order = ordersService.createOrderOrAddOrder(userId, orderRequest);
         return ResponseEntity.ok(order);
-        }
+    }
 	
 //    @GetMapping("/get-orders/{userId}")
 //    public ResponseEntity<Response> getOrderList(@PathVariable Long userId){

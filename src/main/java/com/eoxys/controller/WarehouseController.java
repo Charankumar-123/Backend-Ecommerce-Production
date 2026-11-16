@@ -68,6 +68,16 @@ public class WarehouseController {
                 map.put("customerMobile", "N/A");
             }
 
+            // Delivery Location (Live GPS / Address)
+            map.put("deliveryAddress", order.getDeliveryAddress());
+            map.put("deliveryCity", order.getDeliveryCity());
+            map.put("deliveryPincode", order.getDeliveryPincode());
+            map.put("deliveryState", order.getDeliveryState());
+            map.put("latitude", order.getLatitude());
+            map.put("longitude", order.getLongitude());
+            map.put("recipientName", order.getRecipientName() != null ? order.getRecipientName() : map.get("customerName"));
+            map.put("recipientPhone", order.getRecipientPhone() != null ? order.getRecipientPhone() : map.get("customerMobile"));
+
             // Line items
             List<OrderItemsEntity> items = orderItemsRepository.findByOrderId(orderId);
             List<Map<String, Object>> itemsList = new ArrayList<>();
